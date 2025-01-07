@@ -38,6 +38,7 @@ export class CustomersService {
         email,
         password: hashedPassword,
         phone,
+        role: 'client',
       };
 
       const result = await this.db
@@ -106,6 +107,10 @@ export class CustomersService {
     if (!ObjectId.isValid(id)) {
       throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
     }
+    if (data.password !== undefined) {
+      const hashedPassword = await argon2.hash(data.password);
+      data.password = hashedPassword;
+    }
 
     try {
       const result = await this.db
@@ -115,10 +120,6 @@ export class CustomersService {
           { $set: data },
           { returnDocument: 'after' },
         );
-
-      if (!result.value) {
-        throw new HttpException('Client introuvable', HttpStatus.NOT_FOUND);
-      }
 
       return {
         success: true,
