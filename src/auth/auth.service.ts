@@ -24,13 +24,14 @@ export class AuthService {
       throw new HttpException(
         'Erreur lors de la vérification du mot de passe',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        err,
       );
     }
   }
 
   async login(email: string, password: string): Promise<any> {
     try {
-      const hashedPassword = await this.validateUser(email);
+      const hashedPassword = await this.validateUser(email); //Retrouve le client et renvoie son mdp
 
       const isPasswordValid = await this.comparePassword(
         hashedPassword,
@@ -50,13 +51,10 @@ export class AuthService {
         message: 'Connexion réussie',
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
       throw new HttpException(
         'Erreur interne lors de la connexion',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }

@@ -1,6 +1,10 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import * as argon2 from 'argon2';
+import {
+  createCustomerSchema,
+  updateCustomerSchema,
+} from '../schema/customer.schema';
 
 @Injectable()
 export class CustomersService {
@@ -15,11 +19,16 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la récupération des clients',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
 
   async create(data: any): Promise<any> {
+    const { error } = createCustomerSchema.validate(data);
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
     const { firstName, lastName, email, password, phone } = data;
 
     if (!firstName || !lastName || !email || !password) {
@@ -54,6 +63,7 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la création du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
@@ -77,6 +87,7 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la récupération du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
@@ -99,11 +110,16 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la récupération du client par email',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
 
   async update(id: string, data: any): Promise<any> {
+    const { error } = updateCustomerSchema.validate(data);
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
     if (!ObjectId.isValid(id)) {
       throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
     }
@@ -130,6 +146,7 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la mise à jour du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
@@ -156,6 +173,7 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la suppression du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
+        error,
       );
     }
   }
