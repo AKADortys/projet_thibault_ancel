@@ -3,12 +3,14 @@ import { CustomersService } from '../customers/customers.service';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly customersService: CustomersService,
+    private readonly configService: ConfigService,
   ) {}
 
   async validateUser(mail: string): Promise<any> {
