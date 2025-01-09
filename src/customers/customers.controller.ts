@@ -36,7 +36,7 @@ export class CustomersController {
     @Req() req: Request & { user: any },
   ): any {
     const user = req.user;
-    console.log('User from token:', user);
+    console.log('Modification de: ', user);
     return this.customersService.update(id, updateCustomerDto);
   }
 
