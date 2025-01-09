@@ -1,14 +1,22 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MongoClient, Db } from 'mongodb';
 
-const uri = 'mongodb://root:root@localhost:27017'; // URL de connexion à MongoDB
-const dbName = 'projet_SGBD'; // Nom de la base de données
+@Injectable()
+export class DatabaseProvider {
+  private readonly databaseUri: string;
 
-export const DatabaseProvider = {
-  provide: 'DATABASE_CONNECTION',
-  useFactory: async (): Promise<Db> => {
-    const client = new MongoClient(uri);
-    await client.connect();
-    console.log('Connected to MongoDB');
-    return client.db(dbName); // Retourne une instance de la base de données
-  },
-};
+  constructor(private configService: ConfigService) {
+    this.databaseUri = this.configService.get<string>('MONGO_DB_URI');
+  }
+
+  async connect(): Promise<Db> {
+    try {
+      const client = new MongoClient(this.databaseUri, { authSource: 'admin' });
+      await client.connect();
+      return client.db(this.configService.get<string>('MONGO_DB_NAME')); // Retourne une instance de la base de données
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error.message);
+    }
+  }
+}

@@ -1,19 +1,24 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CustomersService } from '../customers/customers.service';
-import { DatabaseProvider } from '../database/mongo.provider';
+import { DatabaseModule } from '../database/mongo.module';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secretKey',
-      signOptions: { expiresIn: '1h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'production',
+        signOptions: { expiresIn: '1h' },
+      }),
     }),
+    DatabaseModule,
   ],
-  providers: [AuthService, CustomersService, DatabaseProvider, ConfigService],
+  providers: [AuthService, CustomersService, ConfigService],
   controllers: [AuthController],
 })
 export class AuthModule {}

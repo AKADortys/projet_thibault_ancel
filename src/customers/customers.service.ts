@@ -1,16 +1,23 @@
-import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
-import { Db, ObjectId } from 'mongodb';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { DatabaseProvider } from '../database/mongo.provider';
 import * as argon2 from 'argon2';
 import {
   createCustomerSchema,
   updateCustomerSchema,
 } from '../schema/customer.schema';
+import { ObjectId, Db } from 'mongodb';
 
 @Injectable()
 export class CustomersService {
   private readonly collectionName = 'customers';
+  private db: Db;
 
-  constructor(@Inject('DATABASE_CONNECTION') private readonly db: Db) {}
+  constructor(private readonly databaseProvider: DatabaseProvider) {}
+
+  async onModuleInit() {
+    // Connecte à la base de données au moment de l'initialisation du module
+    this.db = await this.databaseProvider.connect();
+  }
 
   async findAll(): Promise<any[]> {
     try {
@@ -19,7 +26,6 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la récupération des clients',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }
@@ -63,7 +69,6 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la création du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }
@@ -87,7 +92,6 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la récupération du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }
@@ -97,20 +101,17 @@ export class CustomersService {
       const customer = await this.db
         .collection(this.collectionName)
         .findOne({ email });
-
       if (!customer) {
         throw new HttpException(
           'Client introuvable avec cet email',
           HttpStatus.NOT_FOUND,
         );
       }
-
       return customer;
     } catch (error) {
       throw new HttpException(
         'Erreur lors de la récupération du client par email',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }
@@ -146,7 +147,6 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la mise à jour du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }
@@ -173,7 +173,6 @@ export class CustomersService {
       throw new HttpException(
         'Erreur lors de la suppression du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        error,
       );
     }
   }

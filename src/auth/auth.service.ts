@@ -52,7 +52,6 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-
       // Génération des tokens
       const accessToken = this.jwtService.sign(
         { id: user._id, role: user.role },
@@ -66,14 +65,14 @@ export class AuthService {
       // Stockage des tokens dans les cookies
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: this.configService.get('COOKIE_SECURE'),
         maxAge: 1000 * 60 * 15,
         sameSite: 'strict',
       });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: this.configService.get('COOKIE_SECURE'),
         maxAge: 1000 * 60 * 60 * 24 * 7,
         sameSite: 'strict',
       });
