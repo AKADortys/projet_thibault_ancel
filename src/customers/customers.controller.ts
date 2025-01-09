@@ -6,13 +6,14 @@ import {
   Delete,
   Body,
   Param,
+  Req,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 
 @Controller('customers')
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
-  @Get()
+  @Get('all')
   getAllCustomers(): any {
     return this.customersService.findAll();
   }
@@ -20,7 +21,7 @@ export class CustomersController {
   createCustomer(@Body() createCustomerDto: any): any {
     return this.customersService.create(createCustomerDto);
   }
-  @Get(':id')
+  @Get('customer/:id')
   getCustomerById(@Param('id') id: string): any {
     return this.customersService.findById(id);
   }
@@ -28,11 +29,18 @@ export class CustomersController {
   getCustomerByEmail(@Param('email') email: string): any {
     return this.customersService.findByMail(email);
   }
-  @Put(':id')
-  updateCustomer(@Param('id') id: string, @Body() updateCustomerDto: any): any {
+  @Put('update/:id')
+  updateCustomer(
+    @Param('id') id: string,
+    @Body() updateCustomerDto: any,
+    @Req() req: Request & { user: any },
+  ): any {
+    const user = req.user;
+    console.log('User from token:', user);
     return this.customersService.update(id, updateCustomerDto);
   }
-  @Delete(':id')
+
+  @Delete('delete/:id')
   deleteCustomer(@Param('id') id: string): any {
     return this.customersService.delete(id);
   }

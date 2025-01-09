@@ -14,4 +14,12 @@ export class AuthController {
     const result = await this.authService.login(body.email, body.password, res);
     res.status(result.status).json(result);
   }
+
+  @Post('logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('refresh_token');
+    res.clearCookie('access_token');
+    res.status(200).json({ message: 'Logged out successfully' });
+    return;
+  }
 }

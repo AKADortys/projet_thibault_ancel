@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
 import { AuthMiddleware } from '../token/token.middleware';
@@ -11,6 +16,12 @@ import { DatabaseModule } from 'src/database/mongo.module';
 })
 export class CustomersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('customers'); // Applique le middleware pour toutes les routes de 'customers'
+    consumer.apply(AuthMiddleware).forRoutes(
+      { path: 'customers/customer/:id', method: RequestMethod.GET }, // Pas de paramètre ici
+      { path: 'customers/all', method: RequestMethod.GET }, // Pas de paramètre ici
+      { path: 'customers/email/:email', method: RequestMethod.GET }, // Nécessite un email
+      { path: 'customers/update/:id', method: RequestMethod.PUT }, // Nécessite un ID
+      { path: 'customers/delete/:id', method: RequestMethod.DELETE }, // Nécessite un ID
+    );
   }
 }

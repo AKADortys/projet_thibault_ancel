@@ -35,6 +35,7 @@ export class AuthMiddleware implements NestMiddleware {
       if (now >= expirationTime) {
         throw new HttpException('Token expiré', HttpStatus.UNAUTHORIZED);
       }
+      req.user = decoded.id; // Ajout du user à la requête pour le middleware suivant
 
       next();
     } catch (error) {
