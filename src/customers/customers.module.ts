@@ -16,12 +16,14 @@ import { DatabaseModule } from 'src/database/mongo.module';
 })
 export class CustomersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes(
-      { path: 'customers/customer/:id', method: RequestMethod.GET }, // Pas de paramètre ici
-      { path: 'customers/all', method: RequestMethod.GET }, // Pas de paramètre ici
-      { path: 'customers/email/:email', method: RequestMethod.GET }, // Nécessite un email
-      { path: 'customers/update/:id', method: RequestMethod.PUT }, // Nécessite un ID
-      { path: 'customers/delete/:id', method: RequestMethod.DELETE }, // Nécessite un ID
-    );
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes(
+        { path: 'customers/customer/:id', method: RequestMethod.GET },
+        { path: 'customers/all', method: RequestMethod.GET },
+        { path: 'customers/email/:email', method: RequestMethod.GET },
+        { path: 'customers/update/:id', method: RequestMethod.PUT },
+        { path: 'customers/delete/:id', method: RequestMethod.DELETE },
+      );
   }
 }

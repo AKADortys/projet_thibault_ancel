@@ -1,9 +1,23 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { DatabaseModule } from 'src/database/mongo.module';
+import { AuthMiddleware } from 'src/token/token.middleware';
 
 @Module({
+  imports: [DatabaseModule],
   controllers: [ProductsController],
-  providers: [ProductsService]
+  providers: [ProductsService],
 })
-export class ProductsModule {}
+export class ProductsModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes({ path: 'products', method: RequestMethod.ALL });
+  }
+}

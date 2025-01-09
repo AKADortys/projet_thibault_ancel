@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  OnModuleInit,
+} from '@nestjs/common';
 import { DatabaseProvider } from '../database/mongo.provider';
 import * as argon2 from 'argon2';
 import {
@@ -8,7 +13,7 @@ import {
 import { ObjectId, Db } from 'mongodb';
 
 @Injectable()
-export class CustomersService {
+export class CustomersService implements OnModuleInit {
   private readonly collectionName = 'customers';
   private db: Db;
 
