@@ -6,7 +6,6 @@ import {
   Delete,
   Body,
   Param,
-  Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
@@ -35,5 +34,10 @@ export class ProductsController {
     @Body() updateProductDto: any,
   ): Promise<any> {
     return await this.productsService.update(id, updateProductDto);
+  }
+
+  @Delete('delete/:id')
+  async delete(@Param('id') id: string): Promise<any> {
+    return await this.productsService.delete(id);
   }
 }

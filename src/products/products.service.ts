@@ -57,6 +57,24 @@ export class ProductsService implements OnModuleInit {
     if (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
+    const { label } = product;
+    try {
+      const existingProduct = await this.db
+        .collection(this.collectionName)
+        .findOne({ label: label });
+      if (existingProduct) {
+        throw new HttpException(
+          'Product with the same label already exists',
+          HttpStatus.CONFLICT,
+        );
+      }
+    } catch (error) {
+      throw new HttpException(
+        'Failed to check for existing product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
     try {
       const result = await this.db
         .collection(this.collectionName)
@@ -95,6 +113,26 @@ export class ProductsService implements OnModuleInit {
       console.error('Erreur lors de la mise à jour :', error);
       throw new HttpException(
         'Erreur interne',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async delete(id: string): Promise<any> {
+    if (!ObjectId.isValid(id)) {
+      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      const result = await this.db
+        .collection(this.collectionName)
+        .deleteOne({ _id: new ObjectId(id) });
+      if (result.deletedCount === 0) {
+        return new HttpException('produit introuvable', HttpStatus.NOT_FOUND);
+      }
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        'Erreur lors de la suppression',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

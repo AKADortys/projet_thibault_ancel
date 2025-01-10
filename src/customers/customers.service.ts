@@ -50,6 +50,12 @@ export class CustomersService implements OnModuleInit {
     }
 
     try {
+      const customer = await this.db
+        .collection(this.collectionName)
+        .findOne({ email });
+      if (customer) {
+        return new HttpException('Email déjà utilisé', HttpStatus.CONFLICT);
+      }
       const hashedPassword = await argon2.hash(password);
 
       const customerData = {
