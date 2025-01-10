@@ -19,3 +19,8 @@ export const updateOrderSchema = Joi.object({
     .valid('pending', 'shipped', 'delivered', 'canceled')
     .optional(),
 }).min(1);
+
+export const itemOrderSchema = Joi.object({
+  productId: Joi.number().required(),
+  quantity: Joi.number().required(),
+});

@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import { DatabaseProvider } from '../database/mongo.provider';
 import { Db, ObjectId } from 'mongodb';
-import { createOrderSchema, updateOrderSchema } from '../schema/orders.schema';
+import {
+  createOrderSchema,
+  itemOrderSchema,
+  updateOrderSchema,
+} from '../schema/orders.schema';
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
@@ -51,6 +55,7 @@ export class OrdersService implements OnModuleInit {
           HttpStatus.BAD_REQUEST,
         );
       }
+
       return this.db.collection(this.collectionName).insertOne(order);
     } catch (error) {
       throw new HttpException(
