@@ -19,9 +19,23 @@ export class OrdersController {
   async findOne(@Param('id') id: string): Promise<any> {
     return this.ordersService.findById(id);
   }
-
+  @Get('user/:id')
+  async findByUserId(@Param('id') id: string): Promise<any> {
+    return this.ordersService.findByUserId(id);
+  }
   @Post('create')
   async create(@Body() createOrderDto: any): Promise<any> {
     return this.ordersService.create(createOrderDto);
+  }
+  @Put('update/:id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: any,
+  ): Promise<any> {
+    return this.ordersService.update(id, updateOrderDto);
+  }
+  @Delete('delete/:id')
+  async remove(@Param('id') id: string): Promise<any> {
+    return this.ordersService.delete(id);
   }
 }

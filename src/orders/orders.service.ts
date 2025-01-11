@@ -8,7 +8,7 @@ import { DatabaseProvider } from '../database/mongo.provider';
 import { Db, ObjectId } from 'mongodb';
 import {
   createOrderSchema,
-  itemOrderSchema,
+  itemsOrderSchema,
   updateOrderSchema,
 } from '../schema/orders.schema';
 
@@ -19,6 +19,19 @@ export class OrdersService implements OnModuleInit {
   constructor(private readonly databaseProvider: DatabaseProvider) {}
   async onModuleInit(): Promise<void> {
     this.db = await this.databaseProvider.connect();
+  }
+
+  async itemOrderSchema(items): Promise<any> {
+    if (items.length > 0) {
+      items.forEach((element) => {
+        const { error } = itemsOrderSchema.validate(element);
+        console.log(error);
+        if (error) {
+          throw new HttpException('Invalid item order', HttpStatus.BAD_REQUEST);
+        }
+      });
+      return true;
+    }
   }
   async findAll(): Promise<any[]> {
     try {
@@ -46,17 +59,77 @@ export class OrdersService implements OnModuleInit {
       );
     }
   }
+  async findByUserId(id: string): Promise<any> {
+    try {
+      console.log(id);
+      if (!ObjectId.isValid(id)) {
+        throw new HttpException('Invalid ID', HttpStatus.BAD_REQUEST);
+      }
+      return this.db
+        .collection(this.collectionName)
+        .find({ userId: id })
+        .toArray();
+    } catch (error) {
+      throw new HttpException(
+        'Database error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   async create(order: any): Promise<any> {
     try {
       const { error } = createOrderSchema.validate(order);
       if (error) {
+        console.error(error);
         throw new HttpException(
           error.details[0].message,
           HttpStatus.BAD_REQUEST,
         );
       }
+      const items = order.items;
+      await this.itemOrderSchema(items);
 
       return this.db.collection(this.collectionName).insertOne(order);
+    } catch (error) {
+      throw new HttpException(
+        'Database error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async update(id: string, order: any): Promise<any> {
+    try {
+      if (!ObjectId.isValid(id)) {
+        throw new HttpException('Invalid ID', HttpStatus.BAD_REQUEST);
+      }
+      const { error } = updateOrderSchema.validate(order);
+      if (error) {
+        console.error(error);
+        throw new HttpException(
+          error.details[0].message,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const items = order.items;
+      await this.itemOrderSchema(items);
+      return this.db
+        .collection(this.collectionName)
+        .updateOne({ _id: new ObjectId(id) }, { $set: order });
+    } catch (error) {
+      throw new HttpException(
+        'Database error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async delete(id: string): Promise<any> {
+    try {
+      if (!ObjectId.isValid(id)) {
+        throw new HttpException('Invalid ID', HttpStatus.BAD_REQUEST);
+      }
+      return this.db
+        .collection(this.collectionName)
+        .deleteOne({ _id: new ObjectId(id) });
     } catch (error) {
       throw new HttpException(
         'Database error',
