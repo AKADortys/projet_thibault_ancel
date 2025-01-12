@@ -13,6 +13,7 @@ import { DatabaseModule } from 'src/database/mongo.module';
   imports: [DatabaseModule],
   controllers: [CustomersController],
   providers: [CustomersService],
+  exports: [CustomersService],
 })
 export class CustomersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

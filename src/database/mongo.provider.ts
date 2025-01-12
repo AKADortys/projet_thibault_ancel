@@ -17,13 +17,23 @@ export class DatabaseProvider {
 
   async connect(): Promise<Db> {
     if (!this.client) {
-      // Initialise une seule connexion si elle n'existe pas encore
-      this.client = new MongoClient(this.databaseUri, { authSource: 'admin' });
-      await this.client.connect();
-      this.logger.warn('Connected to MongoDB');
-      this.db = this.client.db(this.databaseName);
+      try {
+        this.logger.warn('Connecting to MongoDB');
+        // Initialise une seule connexion si elle n'existe pas encore
+        this.client = new MongoClient(this.databaseUri, {
+          authSource: 'admin',
+        });
+        await this.client.connect();
+        this.logger.warn('Connected to MongoDB');
+        this.db = this.client.db(this.databaseName);
+      } catch (error) {
+        this.logger.error('Error connecting to MongoDB', error);
+      }
     }
     return this.db; // Réutilise l'instance existante
+  }
+  async getClient(): Promise<MongoClient> {
+    return this.client; // Réutilise l'instance existante
   }
 
   async disconnect(): Promise<void> {
