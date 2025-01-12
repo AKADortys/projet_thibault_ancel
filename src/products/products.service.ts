@@ -92,6 +92,42 @@ export class ProductsService implements OnModuleInit {
     }
   }
 
+  async updateStock(productId: string, quantity: number): Promise<any> {
+    try {
+      if (!ObjectId.isValid(productId)) {
+        throw new HttpException('Invalid product ID', HttpStatus.BAD_REQUEST);
+      }
+      const product = await this.findById(productId);
+
+      if (!product) {
+        throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+      }
+
+      const newStock = product.stock - quantity;
+
+      if (newStock < 0) {
+        throw new HttpException(
+          `Insufficient stock for product: ${productId}`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const result = await this.db
+        .collection(this.collectionName)
+        .updateOne(
+          { _id: new ObjectId(productId) },
+          { $set: { stock: newStock } },
+        );
+
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        'Error updating product stock',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async update(id: string, updatedProduct: any): Promise<any> {
     const { error } = UpdateProductSchema.validate(updatedProduct);
     if (error) {

@@ -13,6 +13,7 @@ import { AuthMiddleware } from 'src/token/token.middleware';
   imports: [DatabaseModule],
   controllers: [ProductsController],
   providers: [ProductsService],
+  exports: [ProductsService],
 })
 export class ProductsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

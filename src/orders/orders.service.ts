@@ -11,16 +11,53 @@ import {
   itemsOrderSchema,
   updateOrderSchema,
 } from '../schema/orders.schema';
+import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
   private collectionName = 'orders';
   private db: Db;
-  constructor(private readonly databaseProvider: DatabaseProvider) {}
+  constructor(
+    private readonly databaseProvider: DatabaseProvider,
+    private readonly productsService: ProductsService,
+  ) {}
   async onModuleInit(): Promise<void> {
     this.db = await this.databaseProvider.connect();
   }
+  async validateStock(order: any): Promise<boolean> {
+    try {
+      for (const item of order.items) {
+        const product = await this.productsService.findById(item.productId);
 
+        if (!product || product.stock < item.quantity) {
+          throw new HttpException(
+            `Insufficient stock for product: ${item.productId}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      return true;
+    } catch (error) {
+      throw new HttpException(
+        'Stock validation error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async updateStock(order: any): Promise<boolean> {
+    try {
+      for (const item of order.items) {
+        await this.productsService.updateStock(item.productId, item.quantity);
+      }
+      return true;
+    } catch (error) {
+      throw new HttpException(
+        'Stock update error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   async itemOrderSchema(items): Promise<any> {
     if (items.length > 0) {
       items.forEach((element) => {
@@ -88,6 +125,8 @@ export class OrdersService implements OnModuleInit {
       }
       const items = order.items;
       await this.itemOrderSchema(items);
+      await this.validateStock(order);
+      await this.updateStock(order);
 
       return this.db.collection(this.collectionName).insertOne(order);
     } catch (error) {
@@ -110,8 +149,12 @@ export class OrdersService implements OnModuleInit {
           HttpStatus.BAD_REQUEST,
         );
       }
-      const items = order.items;
-      await this.itemOrderSchema(items);
+      if (order.items) {
+        const items = order.items;
+        await this.itemOrderSchema(items);
+        await this.validateStock(order);
+        await this.updateStock(order);
+      }
       return this.db
         .collection(this.collectionName)
         .updateOne({ _id: new ObjectId(id) }, { $set: order });

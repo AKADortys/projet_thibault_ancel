@@ -8,9 +8,10 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { DatabaseModule } from 'src/database/mongo.module';
 import { AuthMiddleware } from 'src/token/token.middleware';
+import { ProductsModule } from '../products/products.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, ProductsModule],
   controllers: [OrdersController],
   providers: [OrdersService],
 })
