@@ -30,7 +30,9 @@ export class OrdersService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     try {
       this.db = await this.databaseProvider.connect();
-      this.logger.log('Database connection established');
+      this.logger.log(
+        'Database connection established on: ' + this.collectionName,
+      );
     } catch (error) {
       this.logger.error(`Database connection error: ${error.message}`);
       throw new HttpException(

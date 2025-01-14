@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   OnModuleInit,
+  Logger,
 } from '@nestjs/common';
 import { DatabaseProvider } from '../database/mongo.provider';
 import { Db, ObjectId } from 'mongodb';
@@ -15,6 +16,7 @@ import {
 export class ProductsService implements OnModuleInit {
   private readonly collectionName = 'products';
   private db: Db;
+  private logger: Logger = new Logger(this.collectionName);
   constructor(private readonly databaseProvider: DatabaseProvider) {}
 
   async onModuleInit() {
@@ -28,11 +30,15 @@ export class ProductsService implements OnModuleInit {
         .toArray();
       return products;
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Failed to retrieve products',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+  private handleError(message: string, status: HttpStatus): never {
+    this.logger.error(message);
+    throw new HttpException(message, status);
   }
 
   async findById(id: string): Promise<any> {
@@ -41,12 +47,12 @@ export class ProductsService implements OnModuleInit {
         .collection(this.collectionName)
         .findOne({ _id: new ObjectId(id) });
       if (!product) {
-        throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+        this.handleError('product not found', HttpStatus.NOT_FOUND);
       }
       return product;
     } catch (error) {
-      throw new HttpException(
-        'Failed to retrieve product',
+      this.handleError(
+        'Failed to fetch product',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -55,7 +61,7 @@ export class ProductsService implements OnModuleInit {
   async create(product: any): Promise<any> {
     const { error } = CreateProductSchema.validate(product);
     if (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      this.handleError(error.message, HttpStatus.BAD_REQUEST);
     }
     const { label } = product;
     try {
@@ -63,13 +69,13 @@ export class ProductsService implements OnModuleInit {
         .collection(this.collectionName)
         .findOne({ label: label });
       if (existingProduct) {
-        throw new HttpException(
-          'Product with the same label already exists',
+        this.handleError(
+          'Products with the same label already exist',
           HttpStatus.CONFLICT,
         );
       }
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Failed to check for existing product',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -85,8 +91,8 @@ export class ProductsService implements OnModuleInit {
         customerId: result.insertedId,
       };
     } catch (error) {
-      throw new HttpException(
-        'Failed to create product',
+      this.handleError(
+        'failed to create product',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -95,18 +101,18 @@ export class ProductsService implements OnModuleInit {
   async updateStock(productId: string, quantity: number): Promise<any> {
     try {
       if (!ObjectId.isValid(productId)) {
-        throw new HttpException('Invalid product ID', HttpStatus.BAD_REQUEST);
+        this.handleError('invalid product id', HttpStatus.BAD_REQUEST);
       }
       const product = await this.findById(productId);
 
       if (!product) {
-        throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+        this.handleError('product not found', HttpStatus.NOT_FOUND);
       }
 
       const newStock = product.stock - quantity;
 
       if (newStock < 0) {
-        throw new HttpException(
+        this.handleError(
           `Insufficient stock for product: ${productId}`,
           HttpStatus.BAD_REQUEST,
         );
@@ -121,7 +127,7 @@ export class ProductsService implements OnModuleInit {
 
       return result;
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Error updating product stock',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -131,10 +137,10 @@ export class ProductsService implements OnModuleInit {
   async update(id: string, updatedProduct: any): Promise<any> {
     const { error } = UpdateProductSchema.validate(updatedProduct);
     if (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      this.handleError(error.message, HttpStatus.BAD_REQUEST);
     }
     if (!ObjectId.isValid(id)) {
-      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+      this.handleError('Id produit invalide', HttpStatus.BAD_REQUEST);
     }
     try {
       const result = await this.db
@@ -146,24 +152,20 @@ export class ProductsService implements OnModuleInit {
         );
       return result;
     } catch (error) {
-      console.error('Erreur lors de la mise à jour :', error);
-      throw new HttpException(
-        'Erreur interne',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      this.handleError(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   async delete(id: string): Promise<any> {
     if (!ObjectId.isValid(id)) {
-      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+      this.handleError('Id produit invalide', HttpStatus.BAD_REQUEST);
     }
     try {
       const result = await this.db
         .collection(this.collectionName)
         .deleteOne({ _id: new ObjectId(id) });
       if (result.deletedCount === 0) {
-        return new HttpException('produit introuvable', HttpStatus.NOT_FOUND);
+        this.handleError('produit introuvable', HttpStatus.NOT_FOUND);
       }
       return result;
     } catch (error) {

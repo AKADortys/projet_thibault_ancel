@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   OnModuleInit,
+  Logger,
 } from '@nestjs/common';
 import { DatabaseProvider } from '../database/mongo.provider';
 import * as argon2 from 'argon2';
@@ -16,6 +17,7 @@ import { ObjectId, Db } from 'mongodb';
 export class CustomersService implements OnModuleInit {
   private readonly collectionName = 'customers';
   private db: Db;
+  private logger: Logger = new Logger(this.collectionName);
 
   constructor(private readonly databaseProvider: DatabaseProvider) {}
 
@@ -23,13 +25,17 @@ export class CustomersService implements OnModuleInit {
     // Connecte à la base de données au moment de l'initialisation du module
     this.db = await this.databaseProvider.connect();
   }
+  private handleError(message: string, status: HttpStatus): never {
+    this.logger.error(message);
+    throw new HttpException(message, status);
+  }
 
   async findAll(): Promise<any[]> {
     try {
       return await this.db.collection(this.collectionName).find().toArray();
     } catch (error) {
-      throw new HttpException(
-        'Erreur lors de la récupération des clients',
+      this.handleError(
+        'Erreur lors de la récupération de tous les clients',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -38,12 +44,12 @@ export class CustomersService implements OnModuleInit {
   async create(data: any): Promise<any> {
     const { error } = createCustomerSchema.validate(data);
     if (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      this.handleError(error.message, HttpStatus.BAD_REQUEST);
     }
     const { firstName, lastName, email, password, phone } = data;
 
     if (!firstName || !lastName || !email || !password) {
-      throw new HttpException(
+      this.handleError(
         'Les champs obligatoires sont manquants',
         HttpStatus.BAD_REQUEST,
       );
@@ -54,7 +60,10 @@ export class CustomersService implements OnModuleInit {
         .collection(this.collectionName)
         .findOne({ email });
       if (customer) {
-        return new HttpException('Email déjà utilisé', HttpStatus.CONFLICT);
+        this.handleError(
+          'Email déjà existant dans la base de donnée',
+          HttpStatus.CONFLICT,
+        );
       }
       const hashedPassword = await argon2.hash(password);
 
@@ -77,7 +86,7 @@ export class CustomersService implements OnModuleInit {
         customerId: result.insertedId,
       };
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Erreur lors de la création du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -86,7 +95,7 @@ export class CustomersService implements OnModuleInit {
 
   async findById(id: string): Promise<any> {
     if (!ObjectId.isValid(id)) {
-      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+      this.handleError('Invalid id', HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -95,15 +104,12 @@ export class CustomersService implements OnModuleInit {
         .findOne({ _id: new ObjectId(id) });
 
       if (!customer) {
-        throw new HttpException('Client introuvable', HttpStatus.NOT_FOUND);
+        this.handleError('Client introuvable', HttpStatus.NOT_FOUND);
       }
 
       return customer;
     } catch (error) {
-      throw new HttpException(
-        'Erreur lors de la récupération du client',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      this.handleError(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -113,14 +119,14 @@ export class CustomersService implements OnModuleInit {
         .collection(this.collectionName)
         .findOne({ email });
       if (!customer) {
-        throw new HttpException(
-          'Client introuvable avec cet email',
+        this.handleError(
+          `Client introuvable avec cet email ${email}`,
           HttpStatus.NOT_FOUND,
         );
       }
       return customer;
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Erreur lors de la récupération du client par email',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -130,10 +136,10 @@ export class CustomersService implements OnModuleInit {
   async update(id: string, data: any): Promise<any> {
     const { error } = updateCustomerSchema.validate(data);
     if (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      this.handleError(error.message, HttpStatus.BAD_REQUEST);
     }
     if (!ObjectId.isValid(id)) {
-      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+      this.handleError('id introuvable', HttpStatus.BAD_REQUEST);
     }
     if (data.password !== undefined) {
       const hashedPassword = await argon2.hash(data.password);
@@ -155,8 +161,8 @@ export class CustomersService implements OnModuleInit {
         customer: result.value,
       };
     } catch (error) {
-      throw new HttpException(
-        'Erreur lors de la mise à jour du client',
+      this.handleError(
+        'Erreur lors de la mise à jour client',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -164,7 +170,7 @@ export class CustomersService implements OnModuleInit {
 
   async delete(id: string): Promise<any> {
     if (!ObjectId.isValid(id)) {
-      throw new HttpException('ID invalide', HttpStatus.BAD_REQUEST);
+      this.handleError('ID invalide', HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -173,7 +179,7 @@ export class CustomersService implements OnModuleInit {
         .deleteOne({ _id: new ObjectId(id) });
 
       if (result.deletedCount === 0) {
-        throw new HttpException('Client introuvable', HttpStatus.NOT_FOUND);
+        this.handleError('Client introuvable', HttpStatus.NOT_FOUND);
       }
 
       return {
@@ -181,7 +187,7 @@ export class CustomersService implements OnModuleInit {
         message: 'Client supprimé avec succès',
       };
     } catch (error) {
-      throw new HttpException(
+      this.handleError(
         'Erreur lors de la suppression du client',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );

@@ -1,0 +1,21 @@
+{
+  "_id": {
+    "$oid": "6785ddaf589d0698022fb4c7"
+  },
+  "name": "Desserts",
+  "description": "Catégorie comprenant les desserts, comme les gâteaux, tartes et crèmes glacées.",
+  "products": [
+    {
+      "$oid": "507f191e810c19729de860ec"
+    },
+    {
+      "$oid": "507f191e810c19729de860ed"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-01-14T09:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-01-14T09:00:00.000Z"
+  }
+}
