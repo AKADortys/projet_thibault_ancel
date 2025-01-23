@@ -3,6 +3,7 @@ import {
   NestMiddleware,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -10,6 +11,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
+  private readonly logger: Logger = new Logger(AuthMiddleware.name);
+
   constructor(private readonly configService: ConfigService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
@@ -54,8 +57,9 @@ export class AuthMiddleware implements NestMiddleware {
         // Envoyer le nouveau token dans un cookie
         res.cookie('accessToken', newToken, {
           httpOnly: true,
-          secure: true, // Activez ceci si vous utilisez HTTPS
+          secure: this.configService.get('COOKIE_SECURE'),
           sameSite: 'strict',
+          maxAge: 1000 * 60 * 15,
         });
 
         req.headers.authorization = `Bearer ${newToken}`;
@@ -69,7 +73,10 @@ export class AuthMiddleware implements NestMiddleware {
 
       next();
     } catch (error) {
-      console.error('Erreur lors de la vérification du token:', error.message);
+      this.logger.error(
+        'Erreur lors de la vérification du token:',
+        error.message,
+      );
       throw new HttpException(
         'Token invalide ou expiré.',
         HttpStatus.UNAUTHORIZED,
@@ -78,6 +85,7 @@ export class AuthMiddleware implements NestMiddleware {
   }
 
   async refreshToken(token: string): Promise<string | null> {
+    console.log('Tentative de rafraichissement');
     try {
       // Vérifier la validité du refreshToken
       const decoded: any = jwt.verify(
@@ -94,7 +102,10 @@ export class AuthMiddleware implements NestMiddleware {
 
       return newAccessToken;
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement du token:', error.message);
+      this.logger.error(
+        'Erreur lors de la vérification du refreshToken:',
+        error.message,
+      );
       return null;
     }
   }

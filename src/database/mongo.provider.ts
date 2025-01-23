@@ -34,7 +34,6 @@ export class DatabaseProvider {
   async getClient(): Promise<MongoClient> {
     return this.client;
   }
-
   async disconnect(): Promise<void> {
     if (this.client) {
       await this.client.close();
