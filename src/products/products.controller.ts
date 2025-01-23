@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
@@ -32,7 +33,9 @@ export class ProductsController {
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: any,
+    @Req() userInfo: any,
   ): Promise<any> {
+    console.log(userInfo.user); ////////////////////////////////////////////////////////////////////////////////////////////////
     return await this.productsService.update(id, updateProductDto);
   }
 

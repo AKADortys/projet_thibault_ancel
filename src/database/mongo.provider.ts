@@ -19,7 +19,6 @@ export class DatabaseProvider {
     if (!this.client) {
       try {
         this.logger.warn('Connecting to MongoDB');
-        // Initialise une seule connexion si elle n'existe pas encore
         this.client = new MongoClient(this.databaseUri, {
           authSource: 'admin',
         });
@@ -30,10 +29,10 @@ export class DatabaseProvider {
         this.logger.error('Error connecting to MongoDB', error);
       }
     }
-    return this.db; // Réutilise l'instance existante
+    return this.db;
   }
   async getClient(): Promise<MongoClient> {
-    return this.client; // Réutilise l'instance existante
+    return this.client;
   }
 
   async disconnect(): Promise<void> {
