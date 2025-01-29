@@ -30,21 +30,22 @@ Ce projet est une API backend développée avec le framework [NestJS](https://ne
    ```
 3. Configurez les variables d'environnement :
    Créez un fichier `.env` à la racine du projet et ajoutez-y les clés nécessaires :
+
    ```env
-   DATABASE_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<database>?retryWrites=true&w=majority
-   JWT_SECRET=your_jwt_secret
-   JWT_EXPIRATION=3600
-   JWT_REFRESH_SECRET=your_refresh_secret
-   JWT_REFRESH_EXPIRATION=86400
-   PORT=3000
+   MONGO_DB_URI=mongodb://root:root@localhost:27017
+   MONGO_DB_NAME=projet_SGBD
+   APP_PORT=3000
+   JWT_SECRET=production
+   COOKIE_SECURE=Fautchangerplustard
+
    ```
 
 ## Lancement de l'application
 
-Démarrez le serveur en mode développement :
+Démarrez le serveur :
 
 ```bash
-npm run start:dev
+npm run start
 ```
 
 L'API sera accessible sur `http://localhost:3000`.
@@ -54,33 +55,35 @@ L'API sera accessible sur `http://localhost:3000`.
 ### Authentification
 
 - `POST /auth/login` : Connexion utilisateur.
-- `POST /auth/logout` : Déconnexion utilisateur.
+- `POST /auth/logout` : Déconnexion utilisateur.\*
 
 ### Customers
 
-- `GET /customers/all` : Récupérer tous les clients.
-- `GET /customers/email/email?` : Rechercher un client par email.
-- `GET /customers/customer/customerId?` : Récupérer un client par ID.
+- `GET /customers/all` : Récupérer tous les clients.\*
+- `GET /customers/email/email?` : Rechercher un client par email.\*
+- `GET /customers/customer/customerId?` : Récupérer un client par ID.\*
 - `POST /customers/create` : Créer un nouveau client.
-- `PUT /customers/update/customerId?` : Mettre à jour un client.
-- `DELETE /customers/delete/customerId?` : Supprimer un client.
+- `PUT /customers/update/customerId?` : Mettre à jour un client.\*
+- `DELETE /customers/delete/customerId?` : Supprimer un client.\*
 
 ### Products
 
 - `GET /products/all` : Récupérer tous les produits.
 - `GET /products/productId?` : Récupérer un produit par ID.
-- `POST /products/create` : Créer un nouveau produit.
-- `PUT /products/update/productId?` : Mettre à jour un produit.
-- `DELETE /products/delete/productId?` : Supprimer un produit.
+- `POST /products/create` : Créer un nouveau produit.\*
+- `PUT /products/update/productId?` : Mettre à jour un produit.\*
+- `DELETE /products/delete/productId?` : Supprimer un produit.\*
 
 ### Orders
 
-- `POST /orders/create` : Créer une nouvelle commande.
-- `GET /orders/order/orderId?` : Récupérer une commande par ID.
-- `GET /orders/user/customerId?` : Récupérer les commandes d'un client.
-- `GET /orders/all` : Récupérer toutes les commandes.
-- `PUT /orders/update/orderId?` : Mettre à jour une commande.
-- `DELETE /orders/delete/orderId?` : Supprimer une commande.
+- `POST /orders/create` : Créer une nouvelle commande.\*
+- `GET /orders/order/orderId?` : Récupérer une commande par ID.\*
+- `GET /orders/user/customerId?` : Récupérer les commandes d'un client.\*
+- `GET /orders/all` : Récupérer toutes les commandes.\*
+- `PUT /orders/update/orderId?` : Mettre à jour une commande.\*
+- `DELETE /orders/delete/orderId?` : Supprimer une commande.\*
+
+### Middleware JWT appliqué (\*)
 
 ## Dépendances principales
 
