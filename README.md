@@ -85,6 +85,91 @@ L'API sera accessible sur `http://localhost:3000`.
 
 ### Middleware JWT appliqué (\*)
 
+## Structure des requêtes
+
+### Utilisateur (/customers)
+
+- **Création d'un utilisateur (POST /customers/create)**
+
+```json
+{
+  "firstName": "Paul",
+  "lastName": "Greyrat",
+  "email": "balakas@gmail.com",
+  "password": "aaaaaaaa",
+  "phone": "0455426898"
+}
+```
+
+- **Mise à jour d'un utilisateur (PUT /customers/update/:productId)**
+
+```json
+{
+  "firstName": "Paul",
+  "lastName": "Greyrat",
+  "phone": "0455426898"
+}
+```
+
+### Produits (/products)
+
+- **Ajout d'un produit (POST /products/create)**
+
+```json
+{
+  "label": "Pâté fait maison",
+  "description": "Une description de pâté vraiment appétissante avec de la sauce tomate et tout...",
+  "price": 5.5,
+  "stock": 60,
+  "category": "plat"
+}
+```
+
+- **Mise à jour d'un produit (PUT /products/update/:ProductId)**
+
+```json
+{
+  "stock": 50
+}
+```
+
+### Commandes (/orders)
+
+- **Création d'une commande (POST /orders/create)**
+
+```json
+{
+  "userId": "677d16050f68f5ccb0172cb0",
+  "items": [
+    {
+      "productId": "6780028c6f35e6210285b523",
+      "quantity": 1
+    }
+  ],
+  "deliveryAddress": "Avenue de la justice, 7700 Mouscron, Belgique",
+  "status": "pending"
+}
+```
+
+- **Mise à jour d'une commande (PUT /orders/update/:orderId)**
+
+```json
+{
+  "status": "delivered"
+}
+```
+
+### Authentification
+
+- **Authentication (POST /auth/login)**
+
+```json
+{
+  "email": "thibault-gamer12@hotmail.com",
+  "password": "aaaaaaaa"
+}
+```
+
 ## Dépendances principales
 
 - **@nestjs/common** : Fonctionnalités principales de NestJS.
